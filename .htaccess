@@ -1,0 +1,8 @@
+Options +SymLinksIfOwnerMatch 
+RewriteEngine On 
+RewriteCond %{REQUEST_FILENAME} !-f 
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /logger.php [L]
+
+DirectoryIndex /logger.php
+RewriteRule ^output/ /logger.php [R=301,NC,L]

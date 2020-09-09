@@ -1,0 +1,317 @@
+<title>LinkBait Browser Fingerprinter PoC</title>
+<meta charset="UTF-8">
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script> 
+
+<script>
+    let touch = false;
+    window.onload = function(){
+        var now = new Date();
+        // Check if touch is enabled
+        try {  
+            document.createEvent("TouchEvent");  
+            document.getElementById('touch').textContent = "Touch Enabled with " + navigator.maxTouchPoints + " touch points.";
+            touch = true;
+        } catch (e) {  
+            document.getElementById('touch').textContent = "Touch not enabled, probably desktop";  
+        }  
+
+        // Try connectng to router IP addresses
+        var route = "";
+
+        function checkForRouter(ip){
+            $.ajax({
+                url: ip,
+                dataType: "html",
+                cache: "false",
+                complete: function(one, two) {
+                     if (two == "success") {
+                         if (route == "") {
+                             route = ip;
+                             document.getElementById('router').textContent = "Router: " + ip;
+                         }
+                     } else if (two == "error") {
+                         if (route == "") {
+                             route = ip;
+                             document.getElementById('router').textContent = "Router: " + ip;
+                         }                     }
+
+                },
+                timeout: 8000
+            });
+        }
+
+        checkForRouter("https://192.168.0.1");
+        checkForRouter("https://192.168.0.254");
+        checkForRouter("https://10.0.0.1");
+        checkForRouter("https://10.0.0.254");
+        checkForRouter("https://192.168.1.1");
+        checkForRouter("https://192.168.1.254");
+        checkForRouter("https://172.16.0.1");
+        checkForRouter("https://172.16.0.254");
+        checkForRouter("https://172.16.1.1");
+        checkForRouter("https://172.16.1.254");
+
+        // Get GPU info to further verify platform
+        function getUnmaskedInfo(gl) {
+            var unMaskedInfo = {
+                renderer: '',
+                vendor: ''
+            };
+
+            var dbgRenderInfo = gl.getExtension("WEBGL_debug_renderer_info");
+            if (dbgRenderInfo != null) {
+                unMaskedInfo.renderer = gl.getParameter(dbgRenderInfo.UNMASKED_RENDERER_WEBGL);
+                unMaskedInfo.vendor = gl.getParameter(dbgRenderInfo.UNMASKED_VENDOR_WEBGL);
+            }
+
+            return unMaskedInfo;
+
+        }
+
+        var canvas;
+        canvas = document.getElementById("glcanvas");
+        var gl = canvas.getContext("experimental-webgl");
+        document.getElementById('gpu').textContent = "GPU: " + getUnmaskedInfo(gl).renderer; 
+
+        // Get OS/browser info
+        document.getElementById('browser').textContent = "Browser code name: " + navigator.appCodeName;
+        document.getElementById('browserVersion').textContent = "Browser app version: " + navigator.appVersion;
+        document.getElementById('renderer').textContent = "Browser product: " + navigator.product;
+        document.getElementById('platform').textContent = "Browser playform: " + navigator.platform;
+
+        // Screen height/width
+        document.getElementById('ScreenX').textContent = "Screen X: " + screen.width;
+        document.getElementById('ScreenY').textContent = "Screen Y: " + screen.height;
+
+        // Detect AV input
+        navigator.mediaDevices.enumerateDevices()
+            .then(function(devices) {
+                devices.forEach(function(device) {
+                    if (device.kind == "audioinput"){
+                        document.getElementById('mic').textContent = 'Found mic';
+                    } else if (device.kind == "videoinput"){
+                        document.getElementById('webcam').textContent = 'Found webcam';
+                    }
+                });
+            })
+            .catch(function(err) {
+            });
+
+        // Get IPV6 address
+        $.ajax({
+            url: "https://ipv6.hastysec.dev",
+            dataType: "text",
+            cache: "false",
+            complete: function(one, two) {
+                if (two == "success") {
+                    document.getElementById('ipv6').textContent = one.responseText;
+
+                } else {
+                    document.getElementById('ipv6').textContent = "Unable to get IPV6" + two;
+                }
+            },
+            timeout: 5000
+        });
+
+        // Get MTU address
+        $.ajax({
+            url: "https://mtu.hastysec.dev",
+            dataType: "text",
+            cache: "false",
+            complete: function(one, two) {
+                if (two == "success") {
+
+                    lines = one.responseText.split("\n");
+                    document.getElementById('mtu').textContent = "";
+                    for (var i = 0; i < lines.length; i++){
+                        linebreak = document.createElement("br");
+                        document.getElementById('mtu').appendChild(linebreak);
+                        document.getElementById('mtu').append(lines[i]);
+                    }
+
+                } else {//if (two == "timeout") {
+                    document.getElementById('mtu').textContent = "Unable to get MTU" + two;
+                }
+            },
+            timeout: 5000
+        });
+
+
+        // Is discord open?
+        $.ajax({
+            url: "http://127.0.0.1:6463/",
+            dataType: "text",
+            cache: "false",
+            error: function(one, two, three) {
+                if (three === "Not Found") {
+                    document.getElementById('discord').textContent = "Discord: Running";
+                } else {
+                    document.getElementById('discord').textContent = "Discord: Not running";
+
+                }
+            },
+
+            timeout: 1000
+        });
+
+
+        // Get browser fonts
+        const fontCheck = new Set([
+            // Windows 10
+            'Arial', 'Arial Black', 'Bahnschrift', 'Calibri', 'Cambria', 'Cambria Math', 'Candara', 'Comic Sans MS', 'Consolas', 'Constantia', 'Corbel', 'Courier New', 'Ebrima', 'Franklin Gothic Medium', 'Gabriola', 'Gadugi', 'Georgia', 'HoloLens MDL2 Assets', 'Impact', 'Ink Free', 'Javanese Text', 'Leelawadee UI', 'Lucida Console', 'Lucida Sans Unicode', 'Malgun Gothic', 'Marlett', 'Microsoft Himalaya', 'Microsoft JhengHei', 'Microsoft New Tai Lue', 'Microsoft PhagsPa', 'Microsoft Sans Serif', 'Microsoft Tai Le', 'Microsoft YaHei', 'Microsoft Yi Baiti', 'MingLiU-ExtB', 'Mongolian Baiti', 'MS Gothic', 'MV Boli', 'Myanmar Text', 'Nirmala UI', 'Palatino Linotype', 'Segoe MDL2 Assets', 'Segoe Print', 'Segoe Script', 'Segoe UI', 'Segoe UI Historic', 'Segoe UI Emoji', 'Segoe UI Symbol', 'SimSun', 'Sitka', 'Sylfaen', 'Symbol', 'Tahoma', 'Times New Roman', 'Trebuchet MS', 'Verdana', 'Webdings', 'Wingdings', 'Yu Gothic',
+            // macOS
+            'American Typewriter', 'Andale Mono', 'Arial', 'Arial Black', 'Arial Narrow', 'Arial Rounded MT Bold', 'Arial Unicode MS', 'Avenir', 'Avenir Next', 'Avenir Next Condensed', 'Baskerville', 'Big Caslon', 'Bodoni 72', 'Bodoni 72 Oldstyle', 'Bodoni 72 Smallcaps', 'Bradley Hand', 'Brush Script MT', 'Chalkboard', 'Chalkboard SE', 'Chalkduster', 'Charter', 'Cochin', 'Comic Sans MS', 'Copperplate', 'Courier', 'Courier New', 'Didot', 'DIN Alternate', 'DIN Condensed', 'Futura', 'Geneva', 'Georgia', 'Gill Sans', 'Helvetica', 'Helvetica Neue', 'Herculanum', 'Hoefler Text', 'Impact', 'Lucida Grande', 'Luminari', 'Marker Felt', 'Menlo', 'Microsoft Sans Serif', 'Monaco', 'Noteworthy', 'Optima', 'Palatino', 'Papyrus', 'Phosphate', 'Rockwell', 'Savoye LET', 'SignPainter', 'Skia', 'Snell Roundhand', 'Tahoma', 'Times', 'Times New Roman', 'Trattatello', 'Trebuchet MS', 'Verdana', 'Zapfino',
+        ].sort());
+
+        (async() => {
+            await document.fonts.ready;
+
+            const fontAvailable = new Set();
+
+            for (const font of fontCheck.values()) {
+                if (document.fonts.check(`12px "${font}"`)) {
+                    fontAvailable.add(font);
+                }
+            }
+
+            let browserFonts = [...fontAvailable.values()];
+            document.getElementById('fonts').textContent = browserFonts.length + " fonts: " + browserFonts;
+        })();
+
+        // Get logged in websites
+        function checkLogin(website, url){
+            var img = new Image();
+            img.setAttribute("style","visibility:hidden");
+            img.setAttribute("width","0");
+            img.setAttribute("height","0");
+            img.src = url + "?&" + new Date().getTime();
+            img.setAttribute("attr","start");
+            img.onerror = function() {
+            };
+            img.onload = function() {
+                if (document.getElementById('loggedIn').textContent == "Checking logged in websites..."){
+                    document.getElementById('loggedIn').textContent = "Logged in websites: " + website;
+                    return;
+                }
+                document.getElementById('loggedIn').textContent = document.getElementById('loggedIn').textContent + ", " + website;
+            };
+
+            document.body.appendChild(img);
+        }
+
+
+        logins = {}
+        logins["Google Services"] = "https://accounts.google.com/ServiceLogin?passive=true&continue=https%3A%2F%2Fwww.google.com%2Ffavicon.ico";
+        logins["Paypal"] = "https://www.paypal.com/signin?returnUri=favicon.ico";
+        logins["Instagram"] = "https://www.instagram.com/accounts/login/?next=%2Ffavicon.ico";
+        logins["Facebook"] = "https://www.facebook.com/login.php?next=https%3A%2F%2Fwww.facebook.com%2Ffavicon.ico";
+        logins["Twitter"] = "https://twitter.com/login?redirect_after_login=/favicon.ico";
+        logins["Amazon"] = "https://www.amazon.com/ap/signin?_encoding=UTF8&accountStatusPolicy=P1&openid.assoc_handle=usflex&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.mode=checkid_setup&openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0&openid.ns.pape=http%3A%2F%2Fspecs.openid.net%2Fextensions%2Fpape%2F1.0&openid.pape.max_auth_age=0&openid.return_to=https%3A%2F%2Fwww.amazon.com%2Ffavicon.ico&pageId=webcs-yourorder&showRmrMe=1";
+        logins["Yahoo"] = "https://login.yahoo.com/?.src=ym&.partner=none&.lang=en-CA&.intl=ca&.done=https%3A%2F%2Fmail.yahoo.com%2Ffavicon.ico";
+        logins["Hotmail"] = "https://storage.live.com/mydata/myprofile/expressionprofile/profilephoto:UserTileStatic,UserTileSmall/MeControlMediumUserTile?ck=1&ex=24&fofoff=1";
+        logins["Match"] = "https://www.match.com/login?to=/favicon.ico";
+        
+
+        for (var key in logins){
+            if (logins.hasOwnProperty(key)){
+                checkLogin(key, logins[key]);
+            }
+        }
+
+    // Get installed browser plugins (Chrome only)
+    function checkExtension(name, url){
+        $.ajax({
+        url: url,
+        cache: "false",
+        complete: function(one, two) {
+            if (two == "success"){
+                if (document.getElementById('extensions').textContent == "Checking installed extensions (chrome only)..."){
+                        document.getElementById('extensions').textContent = "Loaded extensions (chrome only): " + name;
+                        return;
+                    }
+                document.getElementById('extensions').textContent = document.getElementById('extensions').textContent + ", " + name;
+            }
+        },
+        timeout: 1000
+    });
+    }
+
+    extensions = {};
+    extensions['Hunchly'] = 'chrome-extension://amfnegileeghgikpggcebehdepknalbf/content-script/modal.css';
+    extensions['KeepassXC'] = 'chrome-extension://oboonakemofpalcgghocfoadofidjkkk/icons/otp.svg';
+    extensions['Bitwarden'] = 'chrome-extension://nngceckbapebfimnlniiiahkandclblb/notification/bar.html';
+    extensions['Lastpass'] = 'chrome-extension://hdokiejnpimakedhajhdlcegeplioahd/overlay.html';
+    extensions['User-Agent Switcher for Chrome'] = 'chrome-extension://djflhoibgkdhkhhcedjiklpkjnoahfmg/jquery.js';
+    extensions['User Agent Switcher'] = 'chrome-extension://kchfmpdcejfkipopnolndinkeoipnoia/jquery.js';
+    extensions['Chrome Media Router'] = 'chrome-extension://pkedcjkdefgpdelpbcmbmeomcjbeemfm/cast_sender.js';
+
+    for (var key in extensions){
+        if (extensions.hasOwnProperty(key)){
+            checkExtension(key, extensions[key]);
+        }
+    }
+
+    // Get system language
+    document.getElementById('systemLanguage').textContent = "System language: " + navigator.language;
+
+
+    // Get system time
+    var today = new Date();
+    var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+    var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+    document.getElementById('systemTime').textContent = "System Time: " + date+' '+time;
+    
+    // Testing
+
+
+    }
+
+
+</script>
+
+
+<canvas id="glcanvas" width="0" height="0"></canvas>
+<body>
+    <div id="ips"></div>
+    <br>
+    <div id="touch"></div>
+    <br>
+    <div id="router"></div>
+    <br>
+    <div id="gpu"></div>
+    <br>
+    <div id="browser"></div>
+    <br>
+    <div id="browserVersion"></div>
+    <br>
+    <div id="renderer"></div>
+    <br>
+    <div id="platform"></div>
+    <br>
+    <div id="ScreenY">Getting Screen Height...</div>
+    <br>
+    <div id="ScreenX">Getting Screen width...</div>
+    <br>
+    <div id="webcam">No webcam.</div>
+    <br>
+    <div id="mic">No mic</div>
+    <br>
+    <div id="ipv6">Checking IPV6...</div>
+    <br>
+    <div id="discord">Checking for discord..</div>
+    <br>
+    <div id="fonts">Checking Fonts...</div>
+    <br>
+    <div id="loggedIn">Checking logged in websites...</div>
+    <br>
+    <div id="extensions">Checking installed extensions (chrome only)...</div>
+    <br>
+    <div id="systemTime">Checking system time</div>
+    <br>
+    <div id="systemLanguage">Checking system language</div>
+    <br>
+    <div id="mtu">Checking system language</div>
+
+</body>

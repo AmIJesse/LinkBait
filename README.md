@@ -35,9 +35,7 @@ The script collects the following information
 
 
 ## Contributing
-Pull requests are welcome. For major changes or any features you would like to see, please open an issue first to discuss what you would like to change.
-
-Please make sure to update tests as appropriate.
+Pull requests are welcome. For major changes or any features you would like to see, please open an issue first to discuss what you would like to see changed.
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)

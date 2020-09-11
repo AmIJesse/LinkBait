@@ -4,7 +4,7 @@ Linkbait is a PHP file used to store browser and connection information on anyon
 
 ## Installation
 
-Copy the PHP file into a web-accessable directory on your Apache web server. 
+Copy the PHP file into a web-accessable directory on your Apache web server. Most shared hosts use PHP, so that should not be an issue. 
 
 
 ## Usage

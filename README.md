@@ -1,6 +1,6 @@
 # LinkBait
 
-Linkbait is a PHP file used to store browser and connection information on anyone who loads the file.
+Linkbait is a PHP file used to store browser and connection information on anyone who loads the webpage.
 
 ## Installation
 

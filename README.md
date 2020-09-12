@@ -7,14 +7,25 @@ Linkbait is a PHP file used to store browser and connection information on anyon
 Copy the PHP file into a web-accessable directory on your Apache web server. Most shared hosts use PHP, so that should not be an issue. 
 
 
-## Usage
+## Usage 
+When someone loads the PHP file, it will create a session cookie and link it to a file containing their IP address and User-Agent and send them the HTML/Javascript that the logger uses to grab the browser fingerprint. Once the javascript is done executing it will send a request back to the server with all of the collected data which then gets added to the log file. If the user opens the page again, it will gather all the data again and add it to the **same** log file as a way to keep each targets data together.
 
 It is recommended that you use the included .htaccess file to redirect any requests to non-existing files to logger.php, and to prevent anyone from accessing your output/ directory from the web.
 
+When sending a URL to the target (if using the included .htaccess file, or an equivalent one) you can send a customized url such as
+```
+https://mydomain.com/random/check2-email-jesse
+```
+or 
+```
+https://mydomain.com/emailwhois?email=jesse@notarealemail.com&name=jesse
+```
+
+
 The included example.html file can be moved outside of the output/ directory to allow you to test the service without sending any information to your server. 
 
-The script collects the following information
 
+The script collects the following information
 
 - Touch Information
 - Router IP Address

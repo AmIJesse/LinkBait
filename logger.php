@@ -103,6 +103,7 @@ function submitResult(k, v) {
                 }
             });
 }
+submitResult('url', window.location.href);
 
 window.onload = function(){
     // Check if touch is enabled

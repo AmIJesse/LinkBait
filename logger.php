@@ -191,7 +191,6 @@ window.onload = function(){
     //resp['browserVersion'] = navigator.appVersion;
     //resp['renderer'] = navigator.product;
     //resp['platform'] = navigator.platform;
-    submitResult('browser', navigator.appCodeName);
     submitResult('browserVersion', navigator.appVersion);
     submitResult('renderer', navigator.product);
     submitResult('platform', navigator.platform);
